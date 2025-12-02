@@ -18,7 +18,7 @@ import (
 	"sync"
 )
 
-const UsdtTrc20ApiUri = "https://apilist.tronscanapi.com/api/transfer/trc20"
+// const UsdtTrc20ApiUri = "https://apilist.tronscanapi.com/api/transfer/trc20"
 
 type UsdtTrc20Resp struct {
 	PageSize int    `json:"page_size"`
@@ -77,7 +77,7 @@ func Trc20CallBack(token string, wg *sync.WaitGroup) {
 		"start":           "0",
 		"direction":       "2",
 		"db_version":      "1",
-		"trc20Id":         "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+		"trc20Id":         config.GetUsdtTrc20ContractId(),
 		"address":         token,
 		"start_timestamp": stdutil.ToString(startTime),
 		"end_timestamp":   stdutil.ToString(endTime),
