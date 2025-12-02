@@ -18,6 +18,8 @@ var (
 	TgProxy     string
 	TgManage    int64
 	UsdtRate    float64
+	UsdtTrc20ApiUri     string
+    UsdtTrc20ContractId string
 )
 
 func Init() {
@@ -52,6 +54,17 @@ func Init() {
 	TgBotToken = viper.GetString("tg_bot_token")
 	TgProxy = viper.GetString("tg_proxy")
 	TgManage = viper.GetInt64("tg_manage")
+
+    UsdtTrc20ApiUri = viper.GetString("usdt_trc20_api_uri")
+    if UsdtTrc20ApiUri == "" {
+        UsdtTrc20ApiUri = "https://apilist.tronscanapi.com/api/transfer/trc20"
+    }
+
+    UsdtTrc20ContractId = viper.GetString("usdt_trc20_contract_id")
+    if UsdtTrc20ContractId == "" {
+        UsdtTrc20ContractId = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+    }
+
 }
 
 func GetAppVersion() string {
@@ -96,4 +109,11 @@ func GetOrderExpirationTime() int {
 func GetOrderExpirationTimeDuration() time.Duration {
 	timer := GetOrderExpirationTime()
 	return time.Minute * time.Duration(timer)
+}
+func GetUsdtTrc20ApiUri() string {
+    return UsdtTrc20ApiUri
+  }
+
+func GetUsdtTrc20ContractId() string {
+    return UsdtTrc20ContractId
 }
