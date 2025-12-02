@@ -19,8 +19,6 @@ import (
 	"github.com/assimon/luuu/config"
 )
 
-// const UsdtTrc20ApiUri = "https://apilist.tronscanapi.com/api/transfer/trc20"
-
 type UsdtTrc20Resp struct {
 	PageSize int    `json:"page_size"`
 	Code     int    `json:"code"`
@@ -82,7 +80,7 @@ func Trc20CallBack(token string, wg *sync.WaitGroup) {
 		"address":         token,
 		"start_timestamp": stdutil.ToString(startTime),
 		"end_timestamp":   stdutil.ToString(endTime),
-	}).Get(UsdtTrc20ApiUri)
+	}).Get(config.GetUsdtTrc20ApiUri())
 	if err != nil {
 		panic(err)
 	}
