@@ -16,6 +16,7 @@ import (
 	"github.com/shopspring/decimal"
 	"net/http"
 	"sync"
+	"github.com/assimon/luuu/config"
 )
 
 // const UsdtTrc20ApiUri = "https://apilist.tronscanapi.com/api/transfer/trc20"
