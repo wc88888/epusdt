@@ -138,16 +138,20 @@ func Trc20CallBack(token string, wg *sync.WaitGroup) {
 		decimalQuant, err := decimal.NewFromString(transfer.Amount)
 		if err != nil {
 			log.Sugar.Errorf("❌ [%d] 金额转换失败 [%s]: %v | 原始值=%s", idx, token, err, transfer.Amount)
-			panic(err)
+			continue  // ← 改为 continue，不中断轮询
 		}
 
 		// USDT 有 6 位小数，API 返回的是最小单位
-		decimalDivisor := decimal.NewFromFloat(1000000)
-		amount := decimalQuant.Div(decimalDivisor).InexactFloat64()
-
+		decimalDivisor := decimal.NewFromInt(1000000)
+		decimalAmount := decimalQuant.Div(decimalDivisor)
+		
+		// ✅ 使用 StringFixed 保证精度一致（与订单创建时相同）
+		amount := decimalAmount.InexactFloat64()
+		amountStr := decimalAmount.StringFixed(4)  // 保留 4 位小数
+		
 		log.Sugar.Infof(
-			"💳 [%d] 转账金额转换: %s → %.4f USDT [%s]",
-			idx, transfer.Amount, amount, token,
+			"💳 [%d] 转账金额转换: %s → %s USDT [%s]",
+			idx, transfer.Amount, amountStr, token,
 		)
 
 		// =============== 🔎 查询订单 ===============
