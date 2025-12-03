@@ -6,6 +6,7 @@ import "github.com/gookit/validate"
 type CreateTransactionRequest struct {
 	OrderId     string  `json:"order_id" validate:"required|maxLen:32"`
 	Amount      float64 `json:"amount" validate:"required|isFloat|gt:0.01"`
+	AmountType  string  `json:"amount_type" validate:"in:cny,usdt"`  // cny(默认) 或 usdt，若不传则默认为 cny
 	NotifyUrl   string  `json:"notify_url" validate:"required"`
 	Signature   string  `json:"signature"  validate:"required"`
 	RedirectUrl string  `json:"redirect_url"`
@@ -13,10 +14,11 @@ type CreateTransactionRequest struct {
 
 func (r CreateTransactionRequest) Translates() map[string]string {
 	return validate.MS{
-		"OrderId":   "订单号",
-		"Amount":    "支付金额",
-		"NotifyUrl": "异步回调网址",
-		"Signature": "签名",
+		"OrderId":    "订单号",
+		"Amount":     "支付金额",
+		"AmountType": "金额类型",
+		"NotifyUrl":  "异步回调网址",
+		"Signature":  "签名",
 	}
 }
 
