@@ -15,7 +15,7 @@
 
 举例：
 
-假设传送的参数如下：      
+假设传送的参数如下（未使用 `amount_type` 参数时）：      
 ```
 order_id : 20220201030210321
 amount : 42
@@ -36,6 +36,9 @@ MD5(amount=42&notify_url=http://example.com/notify&order_id=20220201030210321&re
 
 最终得到最终发送的数据：    
 ```
+
+> 若请求中包含 `amount_type`（例如 `amount_type=usdt`），则该字段同样参与签名串拼接：  
+> 也就是说，待加密参数会变为：`amount=42&amount_type=usdt&notify_url=...&order_id=...`。
 order_id : 20220201030210321
 amount : 42
 notify_url : http://example.com/notify
@@ -79,6 +82,7 @@ POST /api/v1/order/create-transaction
 {
   "order_id": "2022123321312321321",
   "amount": 100,
+  "amount_type": "usdt",
   "notify_url": "http://example.com/",
   "redirect_url": "http://example.com/",
   "signature": "xsadaxsaxsa"
@@ -91,7 +95,8 @@ POST /api/v1/order/create-transaction
 |---|---|---|---|-----------|---------------|
 |body|body|object| 否 ||           |
 |» order_id|body|string| 是 | 请求支付订单号   |           |
-|» amount|body|number| 是 | 支付金额(CNY) | 小数点保留后2位，最少0.01 |
+|» amount|body|number| 是 | 支付金额       | 小数点保留后2位，最少0.01；当 `amount_type` 为 `cny` 或未传时表示 CNY，当 `amount_type=usdt` 时表示 USDT 金额 |
+|» amount_type|body|string| 否 | 金额类型       | 可选：`cny` / `usdt`，默认 `cny`；SweatMint 接入统一使用 `usdt` 模式 |
 |» notify_url|body|string| 是 | 异步回调地址    |           |
 |» redirect_url|body|string| 否 | 同步跳转地址    ||
 |» signature|body|string| 是 | 签名        | 接口统一加密方式              |
@@ -133,7 +138,7 @@ POST /api/v1/order/create-transaction
 | » data             | object  | 返回数据      ||
 | »» trade_id        | string  | 交易号       ||
 | »» order_id        | string  | 请求支付订单号   ||
-| »» amount          | float | 请求支付金额    | CNY,保留2位小数                    |
+| »» amount          | float | 请求支付金额    | 当 `amount_type` 为 `cny` 或未传时为 CNY；当为 `usdt` 时为 USDT，均保留2位小数 |
 | »» actual_amount   | float   | 实际需要支付的金额 | USDT,保留四位小数                   |
 | »» token           | string  | 钱包地址      |                               |
 | »» expiration_time | integer | 过期时间      | 时间戳秒                          |
@@ -171,7 +176,7 @@ POST 【异步回调地址】
 |body|body| object | 否 ||                     |
 |» trade_id|body| string | 是 | 交易号                 |                 |
 |» order_id|body| string | 是 | 请求支付订单号             |                 |
-|» amount|body| float  | 是 | 支付金额(CNY)           | 小数点保留后2位 |
+|» amount|body| float  | 是 | 支付金额                | 小数点保留后2位；在 `amount_type=usdt` 模式下表示 USDT 金额 |
 |» actual_amount|body| float  | 是 | 实际需要支付的usdt金额(USDT) | 小数点保留后4位 |
 |» token|body| string | 是 | 钱包地址                | |
 |» block_transaction_id|body| string | 是 | 区块交易号               |  |
