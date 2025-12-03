@@ -33,16 +33,35 @@ var gCreateTransactionLock sync.Mutex
 func CreateTransaction(req *request.CreateTransactionRequest) (*response.CreateTransactionResponse, error) {
 	gCreateTransactionLock.Lock()
 	defer gCreateTransactionLock.Unlock()
-	payAmount := math.MustParsePrecFloat64(req.Amount, 2)
-	// 按照汇率转化USDT
-	decimalPayAmount := decimal.NewFromFloat(payAmount)
-	decimalRate := decimal.NewFromFloat(config.GetUsdtRate())
-	decimalUsdt := decimalPayAmount.Div(decimalRate)
-	// cny 是否可以满足最低支付金额
-	if decimalPayAmount.Cmp(decimal.NewFromFloat(CnyMinimumPaymentAmount)) == -1 {
-		return nil, constant.PayAmountErr
+
+	// 确定金额类型（若不传则默认为 cny）
+	amountType := "cny"
+	if req.AmountType != "" {
+		amountType = req.AmountType
 	}
-	// Usdt是否可以满足最低支付金额
+
+	var decimalUsdt decimal.Decimal
+	var payAmount float64
+
+	// 根据金额类型处理
+	if amountType == "usdt" {
+		// USDT 直接模式：无需汇率转换，直接使用传入的金额
+		payAmount = math.MustParsePrecFloat64(req.Amount, 2)
+		decimalUsdt = decimal.NewFromFloat(payAmount)
+	} else {
+		// CNY 模式（默认）：需要汇率转换（CNY / 汇率 = USDT）
+		payAmount = math.MustParsePrecFloat64(req.Amount, 2)
+		decimalPayAmount := decimal.NewFromFloat(payAmount)
+		decimalRate := decimal.NewFromFloat(config.GetUsdtRate())
+		decimalUsdt = decimalPayAmount.Div(decimalRate)
+
+		// cny 是否可以满足最低支付金额
+		if decimalPayAmount.Cmp(decimal.NewFromFloat(CnyMinimumPaymentAmount)) == -1 {
+			return nil, constant.PayAmountErr
+		}
+	}
+
+	// Usdt 是否可以满足最低支付金额（两种模式都需要检查）
 	if decimalUsdt.Cmp(decimal.NewFromFloat(UsdtMinimumPaymentAmount)) == -1 {
 		return nil, constant.PayAmountErr
 	}
