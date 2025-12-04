@@ -87,9 +87,9 @@ func OrderCallbackHandle(ctx context.Context, t *asynq.Task) error {
 		return errors.New("not ok")
 	}
 
-	// 记录脱敏后的原始请求体到对账日志
-	log.GetLogger("wallet.gateways.epusdt").Infof(
-		"Epusdt callback record | trade_id=%s | order_id=%s | payload=%s",
+	// 记录对账日志：包含 trade_id / order_id 与回调 payload
+	log.Sugar.Infof(
+		"📒 Epusdt callback record | trade_id=%s | order_id=%s | payload=%s",
 		order.TradeId, order.OrderId, string(payloadBytes),
 	)
 
