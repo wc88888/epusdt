@@ -53,12 +53,35 @@ func OrderCallbackHandle(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 	orderResp.Signature = signature
-	resp, err := client.R().SetHeader("powered-by", "Epusdt(https://github.com/assimon/epusdt)").SetBody(orderResp).Post(order.NotifyUrl)
+	
+	// 构造回调 JSON 后，发请求前
+	payloadBytes, _ := json.Cjson.Marshal(orderResp)
+	log.Sugar.Infof(
+		"↗️ Epusdt 回调发起 | trade_id=%s | order_id=%s | url=%s | payload=%s",
+		order.TradeId, order.OrderId, order.NotifyUrl, string(payloadBytes),
+	)
+
+	// 发起回调
+	resp, err := client.R().
+		SetHeader("powered-by", "Epusdt(https://github.com/assimon/epusdt)").
+		SetBody(orderResp).
+		Post(order.NotifyUrl)
+
 	if err != nil {
+		log.Sugar.Errorf("❌ Epusdt 回调请求失败 | trade_id=%s | order_id=%s | err=%v", order.TradeId, order.OrderId, err)
 		return err
 	}
+
+	// 记录 HTTP 返回
+	log.Sugar.Infof(
+		"✅ Epusdt 回调响应 | trade_id=%s | order_id=%s | status=%d | body=%s",
+		order.TradeId, order.OrderId, resp.StatusCode(), string(resp.Body()),
+	)
+
 	body := string(resp.Body())
-	if body != "ok" {
+	if body != "ok" || resp.StatusCode() != 200 {
+		log.Sugar.Errorf("❌ Epusdt 回调未确认 | trade_id=%s | order_id=%s | status=%d | body=%s",
+			order.TradeId, order.OrderId, resp.StatusCode(), string(resp.Body()))
 		order.CallBackConfirm = mdb.CallBackConfirmNo
 		return errors.New("not ok")
 	}
