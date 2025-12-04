@@ -3,6 +3,7 @@ package handle
 import (
 	"context"
 	"errors"
+
 	"github.com/assimon/luuu/config"
 	"github.com/assimon/luuu/model/data"
 	"github.com/assimon/luuu/model/mdb"
@@ -53,7 +54,7 @@ func OrderCallbackHandle(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 	orderResp.Signature = signature
-	
+
 	// 构造回调 JSON 后，发请求前
 	payloadBytes, _ := json.Cjson.Marshal(orderResp)
 	log.Sugar.Infof(
@@ -85,6 +86,13 @@ func OrderCallbackHandle(ctx context.Context, t *asynq.Task) error {
 		order.CallBackConfirm = mdb.CallBackConfirmNo
 		return errors.New("not ok")
 	}
+
+	// 记录脱敏后的原始请求体到对账日志
+	log.GetLogger("wallet.gateways.epusdt").Infof(
+		"Epusdt callback record | trade_id=%s | order_id=%s | payload=%s",
+		order.TradeId, order.OrderId, string(payloadBytes),
+	)
+
 	order.CallBackConfirm = mdb.CallBackConfirmOk
 	return nil
 }
