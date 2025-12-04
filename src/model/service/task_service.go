@@ -2,6 +2,9 @@ package service
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/assimon/luuu/config"
 	"github.com/assimon/luuu/model/data"
 	"github.com/assimon/luuu/model/request"
 	"github.com/assimon/luuu/mq"
@@ -14,9 +17,6 @@ import (
 	"github.com/gookit/goutil/stdutil"
 	"github.com/hibiken/asynq"
 	"github.com/shopspring/decimal"
-	"net/http"
-	"sync"
-	"github.com/assimon/luuu/config"
 )
 
 type UsdtTrc20Resp struct {
@@ -60,8 +60,7 @@ type Data struct {
 }
 
 // Trc20CallBack trc20回调
-func Trc20CallBack(token string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func Trc20CallBack(token string) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Sugar.Error("轮询异常:", err)
