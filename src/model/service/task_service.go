@@ -137,17 +137,17 @@ func Trc20CallBack(token string) {
 		decimalQuant, err := decimal.NewFromString(transfer.Amount)
 		if err != nil {
 			log.Sugar.Errorf("❌ [%d] 金额转换失败 [%s]: %v | 原始值=%s", idx, token, err, transfer.Amount)
-			continue  // ← 改为 continue，不中断轮询
+			continue // ← 改为 continue，不中断轮询
 		}
 
 		// USDT 有 6 位小数，API 返回的是最小单位
 		decimalDivisor := decimal.NewFromInt(1000000)
 		decimalAmount := decimalQuant.Div(decimalDivisor)
-		
+
 		// ✅ 使用 StringFixed 保证精度一致（与订单创建时相同）
 		amount := decimalAmount.InexactFloat64()
-		amountStr := decimalAmount.StringFixed(4)  // 保留 4 位小数
-		
+		amountStr := decimalAmount.StringFixed(4) // 保留 4 位小数
+
 		log.Sugar.Infof(
 			"💳 [%d] 转账金额转换: %s → %s USDT [%s]",
 			idx, transfer.Amount, amountStr, token,
@@ -205,10 +205,22 @@ func Trc20CallBack(token string) {
 			panic(err)
 		}
 
+		// ⚠️ 关键点：OrderProcessing 只更新数据库中的 block_transaction_id，
+		// 此时当前内存中的 order 变量仍然是旧值（BlockTransactionId 为空）。
+		// 如果直接将 order 丢进回调队列，最终回调 payload 中的 block_transaction_id 会是空字符串。
+		// 这里显式把链上哈希写回当前 order，保证回调 JSON 能带上真实哈希。
+		order.BlockTransactionId = transfer.Hash
+
 		log.Sugar.Infof("✅ [%d] 订单处理成功 | TradeId=%s | 交易哈希=%s", idx, tradeId, transfer.Hash)
 
 		// =============== 📨 发送回调队列 ===============
-		orderCallbackQueue, _ := handle.NewOrderCallbackQueue(order)
+		// 重新读取订单，确保包含已经写入的 block_transaction_id
+		updatedOrder, err := data.GetOrderInfoByTradeId(tradeId)
+		if err != nil {
+			log.Sugar.Errorf("❌ [%d] 重新获取订单失败 [TradeId=%s]: %v", idx, tradeId, err)
+			panic(err)
+		}
+		orderCallbackQueue, _ := handle.NewOrderCallbackQueue(updatedOrder)
 		mq.MClient.Enqueue(orderCallbackQueue, asynq.MaxRetry(5))
 		log.Sugar.Infof("📤 [%d] 已入队回调任务 | TradeId=%s", idx, tradeId)
 
