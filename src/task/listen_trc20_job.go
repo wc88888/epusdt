@@ -48,10 +48,10 @@ func (r ListenTrc20Job) Run() {
 				// ⏱️ 超时时 ctx 被 cancel
 				log.Sugar.Warnf("⏱️  [%d] 轮询超时 | 钱包: %s | 原因: 上轮轮询未在 4 秒内完成", idx, token)
 				return
-			default:
-				service.Trc20CallBack(token, &wg)
-			}
-		}(address.Token, i+1)
+		default:
+			service.Trc20CallBack(token)
+		}
+	}(address.Token, i+1)
 	}
 
 	// 等待所有轮询任务完成（或超时）
