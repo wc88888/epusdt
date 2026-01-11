@@ -128,6 +128,34 @@ func CreateTransaction(req *request.CreateTransactionRequest) (*response.CreateT
 	return resp, nil
 }
 
+// CancelTransaction 取消订单（仅允许等待支付的订单）
+func CancelTransaction(req *request.CancelTransactionRequest) (*response.CancelTransactionResponse, error) {
+	order, err := data.GetOrderInfoByOrderId(req.OrderId)
+	if err != nil {
+		return nil, err
+	}
+	if order.ID <= 0 {
+		return nil, constant.OrderNotExists
+	}
+	if order.Status != mdb.StatusWaitPay {
+		return nil, constant.OrderCancelNotAllowed
+	}
+
+	if err := data.UpdateOrderIsExpirationById(order.ID); err != nil {
+		return nil, err
+	}
+	if err := data.UnLockTransaction(order.Token, order.ActualAmount); err != nil {
+		return nil, err
+	}
+
+	resp := &response.CancelTransactionResponse{
+		TradeId: order.TradeId,
+		OrderId: order.OrderId,
+		Status:  mdb.StatusExpired,
+	}
+	return resp, nil
+}
+
 // OrderProcessing 成功处理订单
 func OrderProcessing(req *request.OrderProcessingRequest) error {
 	tx := dao.Mdb.Begin()

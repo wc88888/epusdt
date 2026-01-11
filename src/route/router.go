@@ -24,4 +24,6 @@ func RegisterRoute(e *echo.Echo) {
 	orderRoute := apiV1Route.Group("/order", middleware.CheckApiSign())
 	// 创建订单
 	orderRoute.POST("/create-transaction", comm.Ctrl.CreateTransaction)
+	// 取消订单
+	orderRoute.POST("/cancel-transaction", comm.Ctrl.CancelTransaction)
 }

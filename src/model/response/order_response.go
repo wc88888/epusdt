@@ -11,6 +11,13 @@ type CreateTransactionResponse struct {
 	PaymentUrl     string  `json:"payment_url"`     // 收银台地址
 }
 
+// CancelTransactionResponse 取消订单返回
+type CancelTransactionResponse struct {
+	TradeId string `json:"trade_id"`
+	OrderId string `json:"order_id"`
+	Status  int    `json:"status"`
+}
+
 // OrderNotifyResponse 订单异步回调结构体
 type OrderNotifyResponse struct {
 	TradeId            string  `json:"trade_id"`             //  epusdt订单号

@@ -22,6 +22,19 @@ func (r CreateTransactionRequest) Translates() map[string]string {
 	}
 }
 
+// CancelTransactionRequest 取消交易请求
+type CancelTransactionRequest struct {
+	OrderId   string `json:"order_id" validate:"required|maxLen:32"`
+	Signature string `json:"signature" validate:"required"`
+}
+
+func (r CancelTransactionRequest) Translates() map[string]string {
+	return validate.MS{
+		"OrderId":   "订单号",
+		"Signature": "签名",
+	}
+}
+
 // OrderProcessingRequest 订单处理
 type OrderProcessingRequest struct {
 	Token              string

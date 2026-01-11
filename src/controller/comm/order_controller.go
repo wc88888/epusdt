@@ -22,3 +22,19 @@ func (c *BaseCommController) CreateTransaction(ctx echo.Context) (err error) {
 	}
 	return c.SucJson(ctx, resp)
 }
+
+// CancelTransaction 取消交易
+func (c *BaseCommController) CancelTransaction(ctx echo.Context) (err error) {
+	req := new(request.CancelTransactionRequest)
+	if err = ctx.Bind(req); err != nil {
+		return c.FailJson(ctx, constant.ParamsMarshalErr)
+	}
+	if err = c.ValidateStruct(ctx, req); err != nil {
+		return c.FailJson(ctx, err)
+	}
+	resp, err := service.CancelTransaction(req)
+	if err != nil {
+		return c.FailJson(ctx, err)
+	}
+	return c.SucJson(ctx, resp)
+}

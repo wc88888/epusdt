@@ -12,6 +12,7 @@ var Errno = map[int]string{
 	10007: "订单区块已处理",
 	10008: "订单不存在",
 	10009: "无法解析请求参数",
+	10010: "订单状态不可取消",
 }
 
 var (
@@ -26,6 +27,7 @@ var (
 	OrderBlockAlreadyProcess   = Err(10007)
 	OrderNotExists             = Err(10008)
 	ParamsMarshalErr           = Err(10009)
+	OrderCancelNotAllowed      = Err(10010)
 )
 
 type RspError struct {
